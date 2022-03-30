@@ -42,6 +42,13 @@ namespace NinetyNine
         [SerializeField]
         protected UICard selectedCard;
 
+        [SerializeField]
+        protected GameObject panel;
+
+        [SerializeField]
+        protected TargetSelector targetSelector;
+
+
         public enum UIState
         {
             Idle,
@@ -57,6 +64,12 @@ namespace NinetyNine
 
         protected bool isDrawingCard = false;
         protected UICard cardToDraw = null;
+
+        protected bool isSelectingPlusMinus = false;
+        protected bool substractingSelected = false;
+
+        protected bool isSelectingTarget = false;
+        protected UIPlayer selectedTarget = null;
 
 
         [SerializeField]
@@ -98,10 +111,14 @@ namespace NinetyNine
 
 
             cardDealer = FindObjectOfType<CardDealer>();
+            //panel = GameObject.FindWithTag("Panel");
+            //panel.SetActive(false);
+
         }
 
         protected void Start()
         {
+
             uiState = UIState.GameStarted;
             GameFlow();
         }
@@ -183,7 +200,7 @@ namespace NinetyNine
             var values = GameState.buildDeckValues(Constants.N_CARD_IN_DECK);
 
             // for Jack testing purpose
-            //values.Add(40);
+            values.Add(0);
 
 
             // TODO currently reuse the logic to set up the initial state
@@ -264,21 +281,49 @@ namespace NinetyNine
                 int idx = Random.Range(0, currentTurnPlayer.uihand.Count);
                 selectedCard = currentTurnPlayer.uihand[idx];
                 selectedCard.OnSelected(true);
+                List<string> pids;
 
-                // AI playing Jack
 
-                if (selectedCard.Rank == Ranks.Jack)
+
+                switch (selectedCard.Rank)
                 {
-                    // pick a random card to draw
-                    List<string> pids = new List<string>();
-                    foreach (var id in playerIds)
-                    {
-                        if (id != currentTurnPlayer.PlayerId) pids.Add(id);
-                    }
-                    var randPid = pids[Random.Range(0, pids.Count)];
-                    var randUiPlayer = uiPlayers[randPid];
-                    cardToDraw = randUiPlayer.uihand[Random.Range(0, randUiPlayer.uihand.Count)];
+                    case Ranks.Jack:
+                        // pick a random card to draw
+                        pids = new List<string>();
+                        foreach (var id in playerIds)
+                        {
+                            if (id != currentTurnPlayer.PlayerId) pids.Add(id);
+                        }
+                        var randPid = pids[Random.Range(0, pids.Count)];
+                        var randUiPlayer = uiPlayers[randPid];
+                        cardToDraw = randUiPlayer.uihand[Random.Range(0, randUiPlayer.uihand.Count)];
+                        break;
+                    case Ranks.Ten:
+                    case Ranks.Queen:
+                        substractingSelected = Random.Range(0, 2) == 0;
+                        break;
+                    case Ranks.Ace:
+                        pids = new List<string>();
+                        foreach (var id in playerIds)
+                        {
+                            if (id != currentTurnPlayer.PlayerId) pids.Add(id);
+                        }
+                        selectedTarget = uiPlayers[pids[Random.Range(0, pids.Count)]];
+                        break;
                 }
+
+                //if (selectedCard.Rank == Ranks.Jack)
+                //{
+                //    // pick a random card to draw
+                //    List<string> pids = new List<string>();
+                //    foreach (var id in playerIds)
+                //    {
+                //        if (id != currentTurnPlayer.PlayerId) pids.Add(id);
+                //    }
+                //    var randPid = pids[Random.Range(0, pids.Count)];
+                //    var randUiPlayer = uiPlayers[randPid];
+                //    cardToDraw = randUiPlayer.uihand[Random.Range(0, randUiPlayer.uihand.Count)];
+                //}
             }
 
 
@@ -288,16 +333,40 @@ namespace NinetyNine
 
             var cardToPlay = new Card(selectedCard.Rank, selectedCard.Suit);
 
-            if (selectedCard.Rank == Ranks.Jack)
+            // UI to update gameState by callong makeMove
+
+
+            switch(selectedCard.Rank)
             {
-                var targetUiPlayer = uiPlayers[cardToDraw.OwnerId];
-                var drawIdx = targetUiPlayer.uihand.IndexOf(cardToDraw);
-                gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, targetUiPlayer.PlayerId, new How(null, drawIdx));
+                case Ranks.Jack:
+                    var targetUiPlayer = uiPlayers[cardToDraw.OwnerId];
+                    var drawIdx = targetUiPlayer.uihand.IndexOf(cardToDraw);
+                    gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, targetUiPlayer.PlayerId, new How(null, drawIdx));
+                    break;
+                case Ranks.Ten:
+                case Ranks.Queen:
+                    gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, null, new How(substractingSelected, null));
+                    break;
+                case Ranks.Ace:
+                    gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, selectedTarget.PlayerId, null);
+                    break;
+                default:
+                    gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, null, null);
+                    break;
             }
-            else
-            {
-                gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, null, null);
-            }
+
+
+
+            //if (selectedCard.Rank == Ranks.Jack)
+            //{
+            //    var targetUiPlayer = uiPlayers[cardToDraw.OwnerId];
+            //    var drawIdx = targetUiPlayer.uihand.IndexOf(cardToDraw);
+            //    gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, targetUiPlayer.PlayerId, new How(null, drawIdx));
+            //}
+            //else
+            //{
+            //    gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, null, null);
+            //}
             Debug.Log(gameState);
 
             Card lastDraw = gameState.GetLastDraw();
@@ -316,14 +385,16 @@ namespace NinetyNine
                 uiPlayers[cardToDraw.OwnerId].SendACardToPlayer(currentTurnPlayer, cardDealer, cardToDraw, !currentTurnPlayer.IsAI);
             }
 
-            SetPoints(gameState.GetPoints());
-
-
+            
             // reset
 
             selectedCard = null;
             cardToDraw = null;
             isDrawingCard = false;
+            isSelectingPlusMinus = false;
+            substractingSelected = false;
+            isSelectingTarget = false;
+            selectedTarget = null;
 
             // TODO refactor
             // After animation ended, a new trun will be started automatically
@@ -452,6 +523,21 @@ namespace NinetyNine
             playerFour.HideCardValues();
         }
 
+        List<UIPlayer> GetAliveUIPlayers()
+        {
+            List<UIPlayer> results = new List<UIPlayer>();
+
+            var players = gameState.GetPlayers();
+
+            foreach (var p in players)
+            {
+                var uiplayer = uiPlayers[p.pid];
+                if (p.alive && uiplayer != currentTurnPlayer) results.Add(uiplayer);
+            }
+
+            return results;
+        }
+
         ////****************** User Interaction *********************//
         public void OnCardSelected(UICard uicard)
         {
@@ -460,11 +546,16 @@ namespace NinetyNine
                 //Debug.Log($"Owner Id {uicard.OwnerId}, pid: {currentTurnPlayer.PlayerId}");
                 if (uicard.OwnerId == currentTurnPlayer.PlayerId)
                 {
-                    
                     if (selectedCard != null)
                     {
                         selectedCard.OnSelected(false);
                         isDrawingCard = false;
+                        isSelectingPlusMinus = false;
+                        substractingSelected = false;
+                        isSelectingTarget = false;
+                        selectedTarget = null;
+                        panel.SetActive(false);
+                        targetSelector.gameObject.SetActive(false);
 
                         if (cardToDraw != null)
                         {
@@ -478,10 +569,23 @@ namespace NinetyNine
                     selectedCard.OnSelected(true);
                     SetMessage($"{currentTurnPlayer.PlayerName}: Play {selectedCard} ?");
 
-                    if (uicard.Rank == Ranks.Jack)
+                    switch(uicard.Rank)
                     {
-                        isDrawingCard = true;
+                        case Ranks.Jack:
+                            isDrawingCard = true;
+                            break;
+                        case Ranks.Ten:
+                        case Ranks.Queen:
+                            isSelectingPlusMinus = true;
+                            panel.SetActive(true);
+                            break;
+                        case Ranks.Ace:
+                            isSelectingTarget = true;
+                            targetSelector.RenderButtons(GetAliveUIPlayers(), OnTargetSelected);
+                            targetSelector.gameObject.SetActive(true);
+                            break;
                     }
+
 
                 } else if (isDrawingCard)
                 {
@@ -506,6 +610,9 @@ namespace NinetyNine
                     if (selectedCard.Rank == Ranks.Jack && cardToDraw == null)
                     {
                         SetMessage($"Please select a card to draw");
+                    } else if (selectedCard.Rank == Ranks.Ace && selectedTarget == null)
+                    {
+                        SetMessage($"Please select a target...");
                     } else
                     {
                         uiState = UIState.TurnConfirmedSelectedNumber;
@@ -513,12 +620,35 @@ namespace NinetyNine
                     }
                 }
             }
-            else if (uiState == UIState.TurnWaitingForOpponentConfirmation && playerOne == currentTurnTargetPlayer)
+            //else if (uiState == UIState.TurnWaitingForOpponentConfirmation && playerOne == currentTurnTargetPlayer)
+            //{
+            //    uiState = UIState.TurnOpponentConfirmed;
+            //    GameFlow();
+            //}
+        }
+
+        public virtual void OnPlusMinusSelected()
+        {
+            if (uiState == UIState.TurnSelectingNumber && isSelectingPlusMinus)
             {
-                uiState = UIState.TurnOpponentConfirmed;
-                GameFlow();
+                if (UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.name == Constants.MINUS_BUTTON_NAME)
+                {
+                    substractingSelected = true;
+                }
+                panel.SetActive(false);
+                SetMessage($"Play {selectedCard} to " +
+                    $"{(substractingSelected ? "substract" : "add")} " +
+                    $"{(selectedCard.Rank == Ranks.Ten ? 10 : 20)} points?");
             }
         }
+
+        void OnTargetSelected(string PlayerId, string PlayerName)
+        {
+            selectedTarget = uiPlayers[PlayerId];
+            targetSelector.gameObject.SetActive(false);
+            SetMessage($"Play {selectedCard} to choose {PlayerName} to play " +
+                    "next?");
+        } 
 
         //****************** Animator Event *********************//
         public virtual void AllAnimationsFinished()
@@ -542,6 +672,18 @@ namespace NinetyNine
 
                     cardDealer.refillDeck(values);
                 }
+
+                // UI updates based on new state
+
+                var players = gameState.GetPlayers();
+
+                foreach (var p in players)
+                {
+                    if (!p.alive) uiPlayers[p.pid].ShowPanel();
+                }
+
+                SetPoints(gameState.GetPoints());
+
 
                 if (gameState.GetGameOver())
                 {

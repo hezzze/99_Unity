@@ -20,6 +20,9 @@ namespace NinetyNine
         public const byte N_CARD_IN_DECK = 52;
         public const int PLAYER_INITIAL_CARDS = 5;
         public const float PLAY_CARD_OFFSET = 3f;
+
+        public const string PLUS_BUTTON_NAME = "plus";
+        public const string MINUS_BUTTON_NAME = "minus";
     }
 
     public enum Suits

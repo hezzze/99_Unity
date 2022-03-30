@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace NinetyNine
 {
@@ -21,6 +22,8 @@ namespace NinetyNine
         //int numberOfBooks;
 
         public List<UICard> uihand = new List<UICard>();
+
+        public GameObject panel; 
 
         public Vector2 NextCardPosition()
         {
@@ -210,6 +213,13 @@ namespace NinetyNine
 
             RepositionDisplayingCards(cardDealer);
         }
+
+        public void ShowPanel()
+        {
+            panel.SetActive(true);
+        }
+
+       
 
         //public bool Equals(UIPlayer other)
         //{

@@ -84,6 +84,17 @@ namespace NinetyNine
             TestJack2();
             TestJack3();
 
+            TestQueen1();
+            TestQueen2();
+
+            TestTen1();
+            TestTen2();
+
+            TestAce1();
+            TestAce2();
+            TestAce3();
+            TestAce4();
+
             TestCard();
 
             Debug.Log("All tests passed");
@@ -183,10 +194,10 @@ namespace NinetyNine
             switch (cardToPlay.Rank)
             {
                 case Ranks.Seven:
-                case Ranks.Jack:
                 case Ranks.RedJoker:
                 case Ranks.BlackJoker:
-                    // 7, J, RJ, BJ cannot draw 
+                    // 7, RJ, BJ cannot draw
+                    // J will draw a card from other player 
                     expectedCount = originCount - 1;
                     break;
                 default:
@@ -194,10 +205,10 @@ namespace NinetyNine
                     break;
             }
 
-            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, null);
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(true, 0));
 
-            Assert(6, players[0].cards.Count == expectedCount);
-            Assert(6, testState.GetUsed().Contains(cardToPlay));
+            Assert("6.1", players[0].cards.Count == expectedCount);
+            Assert("6.2", testState.GetUsed().Contains(cardToPlay));
 
         }
 
@@ -273,7 +284,9 @@ namespace NinetyNine
             var testState = getNewTestState(0);
 
             var players = testState.GetPlayers();
-            var cardToPlay = players[0].cards[0];
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Two, Suits.Spades);
+            players[0].cards.Add(cardToPlay);
 
             testState.makeMove(players[0].pid, cardToPlay, players[1].pid, null);
 
@@ -303,7 +316,7 @@ namespace NinetyNine
                     break;
             }
 
-            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, null);
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(true, 0));
 
             Assert(10, testState.GetLastDraw() == expectedLastDraw);
         }
@@ -323,7 +336,7 @@ namespace NinetyNine
             var cardToPlay = new Card(Ranks.Jack, Suits.Spades);
             players[0].cards.Add(cardToPlay);
 
-            CheckException(1, new System.Exception("DRAW_A_CARD_ERROR"), () =>
+            CheckException("Jack1", new System.Exception("DRAW_A_CARD_ERROR"), () =>
             {
                 testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(null, players[1].cards.Count));
             });
@@ -377,6 +390,149 @@ namespace NinetyNine
             Assert("Jack3", players[1].alive == false);
         }
 
+        void TestQueen1()
+            // play queen, select plus to add 20
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Queen, Suits.Spades);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(false, null));
+
+            Assert("Queen1 - 1", testState.GetPoints() == 20);
+            Assert("Queen1 - 2", testState.GetLastDraw() != null);
+        }
+
+        void TestQueen2()
+        // play queen, select minus to substract 20
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Queen, Suits.Hearts);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(true, null));
+
+            Assert("Queen2 - 1", testState.GetPoints() == -20);
+            Assert("Queen2 - 2", testState.GetLastDraw() != null);
+        }
+
+        void TestTen1()
+        // play ten, select plus to add 10
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Ten, Suits.Clubs);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(false, null));
+
+            Assert("Ten1 - 1", testState.GetPoints() == 10);
+            Assert("Ten1 - 2", testState.GetLastDraw() != null);
+        }
+
+        void TestTen2()
+        // play ten, select minus to substract 10
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Ten, Suits.Diamonds);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(true, null));
+
+            Assert("Ten2 - 1", testState.GetPoints() == -10);
+            Assert("Ten2 - 2", testState.GetLastDraw() != null);
+        }
+
+        void TestAce1()
+            // play ace, choose the 2nd next player 
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Ace, Suits.Hearts);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[2].pid, null);
+
+            Assert("Ace1 - 1", testState.GetTurn() == players[2]);
+        }
+
+        void TestAce2()
+            // when in a opposite direction, choose the next player, direction does not change
+        {
+            var testState = getNewTestState(0);
+
+            testState.SetDirection(false);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Ace, Suits.Diamonds);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[3].pid, null);
+
+            Assert("Ace2 - 1", testState.GetTurn() == players[3]);
+            Assert("Ace2 - 2", testState.GetDirection() == false);
+        }
+
+        void TestAce3()
+        // cannot choose dead player
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Ace, Suits.Diamonds);
+            players[0].cards.Add(cardToPlay);
+
+            players[1].alive = false;
+
+            CheckException("Ace3 - 1", new System.Exception("ILLEGAL_ACE_TARGET"), () =>
+            {
+                testState.makeMove(players[0].pid, cardToPlay, players[1].pid, null);
+            });
+        }
+
+
+        void TestAce4()
+        // play ace, choose the 2nd next player, skip 1 player
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Ace, Suits.Hearts);
+            players[0].cards.Add(cardToPlay);
+
+            players[2].cards.Clear();
+            var cardToPlay2 = new Card(Ranks.Three, Suits.Clubs);
+            players[2].cards.Add(cardToPlay2);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[2].pid, null);
+            testState.makeMove(players[2].pid, cardToPlay2, null, null);
+
+            Assert("Ace4 - 1", testState.GetTurn() == players[3]);
+        }
 
         void TestCard()
         {
@@ -393,14 +549,21 @@ namespace NinetyNine
 
         void CheckException(int n, Exception expected, Action Act)
         {
+            CheckException($"{n}", expected, Act);
+        }
+
+        void CheckException(string s, Exception expected, Action Act)
+        {
             try
             {
                 Act();
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
-                if (e.Message != expected.Message) {
+                if (e.Message != expected.Message)
+                {
                     Debug.Log($"Expected: {expected} \n Actual: {e}");
-                    throw new Exception($"Test {n} failed");
+                    throw new Exception($"Test {s} failed");
                 }
             }
         }

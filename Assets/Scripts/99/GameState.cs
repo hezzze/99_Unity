@@ -17,6 +17,8 @@ namespace NinetyNine
         Card lastDraw;
         Player lastTurn;
         Player winner = null;
+
+        int chosenNextTurnIdx  = -1;
         
 
         // true is clockwise
@@ -79,6 +81,15 @@ namespace NinetyNine
 
         void NextTurn()
         {
+            // override next turn when chosen by Ace
+            if (chosenNextTurnIdx >= 0)
+            {
+                turn = players[chosenNextTurnIdx];
+                turnIdx = chosenNextTurnIdx;
+                chosenNextTurnIdx = -1;
+                return;
+            }
+
             turnIdx = (turnIdx + (direction ? 1 : -1)) % players.Count;
 
             // set to last player
@@ -90,7 +101,6 @@ namespace NinetyNine
                 if (turnIdx < 0) turnIdx = players.Count - 1;
             }
             turn = players[turnIdx];
-            if (points > 99) points = 99;
         }
 
         void SetGameOver()
@@ -165,10 +175,10 @@ namespace NinetyNine
                     PlayNormal(card);
                     break;
                 case Ranks.Ace:
-                    TestDummy();
+                    //TestDummy();
 
 
-                    //PlayChooseNext();
+                    PlayChooseNext(target);
                     break;
                 case Ranks.Four:
                     PlayReverse();
@@ -178,14 +188,14 @@ namespace NinetyNine
 
 
                     //PlayExchange(player, target);
-                    //canDraw = false;
+                    canDraw = false;
                     break;
                 case Ranks.Ten:
                 case Ranks.Queen:
-                    TestDummy();
+                    //TestDummy();
 
                     // assume how.isSub is not null
-                    //Play1020(card, (bool)how.isSub);
+                    Play1020(card, (bool)how.isSub);
                     break;
                 case Ranks.Jack:
                     // assume how.drawCardIdx is not null
@@ -213,14 +223,14 @@ namespace NinetyNine
 
 
                     //PlayCurse(target);
-                    //canDraw = false;
+                    canDraw = false;
                     break;
                 case Ranks.RedJoker:
                     TestDummy();
 
 
                     //PlayRevive(target);
-                    //canDraw = false;
+                    canDraw = false;
                     break;
                 default:
                     throw new System.Exception("ILLEGAL_RANK_OR_SUIT");
@@ -253,7 +263,11 @@ namespace NinetyNine
 
             // check points
             // see if current player is busted
-            if (points > 99) player.alive = false;
+            if (points > 99)
+            {
+                points = 99; // make sure points don't overflow
+                player.alive = false;
+            }
 
             // check all players and see if they're still alive
             foreach (var p in players)
@@ -296,9 +310,10 @@ namespace NinetyNine
             points += card.Rank.GetHashCode();
         }
 
-        void PlayChooseNext()
+        void PlayChooseNext(Player target)
         {
-            //TODO
+            if (!target.alive) throw new System.Exception("ILLEGAL_ACE_TARGET");
+            chosenNextTurnIdx = players.IndexOf(target);
         }
 
         void PlayReverse()
@@ -392,6 +407,16 @@ namespace NinetyNine
         public Player GetWinner()
         {
             return winner;
+        }
+
+        public void SetDirection(bool direction)
+        {
+            this.direction = direction;
+        }
+
+        public bool GetDirection()
+        {
+            return direction;
         }
 
         public override string ToString()
