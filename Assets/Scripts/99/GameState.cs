@@ -184,10 +184,10 @@ namespace NinetyNine
                     PlayReverse();
                     break;
                 case Ranks.Seven:
-                    TestDummy();
+                    //TestDummy();
 
 
-                    //PlayExchange(player, target);
+                    PlayExchange(player, target);
                     canDraw = false;
                     break;
                 case Ranks.Ten:

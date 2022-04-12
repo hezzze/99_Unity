@@ -95,6 +95,10 @@ namespace NinetyNine
             TestAce3();
             TestAce4();
 
+            TestSeven1();
+            TestSeven2();
+            TestSeven3();
+
             TestCard();
 
             Debug.Log("All tests passed");
@@ -533,6 +537,85 @@ namespace NinetyNine
 
             Assert("Ace4 - 1", testState.GetTurn() == players[3]);
         }
+
+
+        void TestSeven1()
+        // play seven, choose a player then cards are exchanged
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Seven, Suits.Hearts);
+            var card1 = new Card(Ranks.Four, Suits.Diamonds);
+            var card2 = new Card(Ranks.Six, Suits.Clubs);
+            players[0].cards.Add(cardToPlay);
+            players[0].cards.Add(card1);
+            players[0].cards.Add(card2);
+
+            players[1].cards.Clear();
+            var card3 = new Card(Ranks.Queen, Suits.Spades);
+            players[1].cards.Add(card3);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, null);
+
+            Assert("Seven1 - 1", players[0].cards.Contains(card3));
+            Assert("Seven1 - 2", players[1].cards.Contains(card1));
+            Assert("Seven1 - 3", players[1].cards.Contains(card2));
+            Assert("Seven1 - 4", players[0].cards.Count == 1);
+            Assert("Seven1 - 5", players[1].cards.Count == 2);
+        }
+
+        void TestSeven2()
+        // play seven, cannot draw a new card
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+            var cardToPlay = new Card(Ranks.Seven, Suits.Diamonds);
+            players[0].cards.Add(cardToPlay);
+            var originalCount1 = players[0].cards.Count;
+            var originalCount2 = players[2].cards.Count;
+
+            testState.makeMove(players[0].pid, cardToPlay, players[2].pid, null);
+
+            Assert("Seven2 - 1", testState.GetLastDraw() == null);
+            Assert("Seven2 - 2", players[0].cards.Count == originalCount2);
+
+            // seven is used and then cards are exchanged
+            Assert("Seven2 - 3", players[2].cards.Count == originalCount1 - 1);
+        }
+
+
+
+        void TestSeven3()
+        // player only has one card, plays seven on another player, causes death
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.Seven, Suits.Clubs);
+            players[0].cards.Add(cardToPlay);
+
+            players[3].cards.Clear();
+            var card1 = new Card(Ranks.Ten, Suits.Spades);
+            var card2 = new Card(Ranks.Jack, Suits.Spades);
+            var card3 = new Card(Ranks.Two, Suits.Hearts);
+            players[3].cards.Add(card1);
+            players[3].cards.Add(card2);
+            players[3].cards.Add(card3);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[3].pid, null);
+
+            Assert("Seven1 - 1", players[0].cards.Count == 3);
+            Assert("Seven1 - 2", players[3].alive == false);
+        }
+
+
+
 
         void TestCard()
         {
