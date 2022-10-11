@@ -142,7 +142,8 @@ namespace NinetyNine
             }
 
             //TODO
-            // Add logic to prevent target to be player itself
+            // 1. Add logic to prevent target to be player itself
+            // 2. target cannot be a dead player
 
             var player = turn;
 
@@ -213,16 +214,13 @@ namespace NinetyNine
                     canDraw = false;
                     break;
                 case Ranks.King:
-                    TestDummy();
-
-
-                    //Play99();
+                    Play99();
                     break;
                 case Ranks.BlackJoker:
-                    TestDummy();
+                    //TestDummy();
 
 
-                    //PlayCurse(target);
+                    PlayCurse(target);
                     canDraw = false;
                     break;
                 case Ranks.RedJoker:

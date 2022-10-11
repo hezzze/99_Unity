@@ -10,6 +10,8 @@ namespace NinetyNine
         UICard uicard;
         Vector2 destination;
         Quaternion rotation;
+        List<UICard> uicards;
+        bool multiple = false;
 
         public CardAnimation(UICard c, Vector2 pos)
         {
@@ -25,22 +27,68 @@ namespace NinetyNine
             rotation = rot;
         }
 
+        public CardAnimation(List<UICard> cards, Vector2 pos)
+        {
+            uicards = cards;
+            destination = pos;
+            multiple = true;
+        }
+
         public bool Play()
         {
             bool finished = false;
 
-            if (Vector2.Distance(uicard.transform.position, destination) < Constants.CARD_SNAP_DISTANCE)
+            if (multiple)
             {
-                uicard.transform.position = destination;
-                finished = true;
+
+                // close the small snap distance
+                foreach (var c in uicards)
+                {
+                    if (Vector2.Distance(c.transform.position, destination) < Constants.CARD_SNAP_DISTANCE) {
+                        c.transform.position = destination;
+                    }
+                }
+
+
+                if (isAllCardFinished())
+                {
+                    finished = true;
+                } else
+                {
+                    foreach (var c in uicards)
+                    {
+                        c.transform.position = Vector2.MoveTowards(c.transform.position, destination, Constants.CARD_MOVEMENT_SPEED * Time.deltaTime);
+                    }
+                }
             }
             else
-            {
-                uicard.transform.position = Vector2.MoveTowards(uicard.transform.position, destination, Constants.CARD_MOVEMENT_SPEED * Time.deltaTime);
-                uicard.transform.rotation = Quaternion.Lerp(uicard.transform.rotation, rotation, Constants.CARD_ROTATION_SPEED * Time.deltaTime);
+            { // single card mode
+                
+                if (Vector2.Distance(uicard.transform.position, destination) < Constants.CARD_SNAP_DISTANCE)
+                {
+                    uicard.transform.position = destination;
+                    finished = true;
+                }
+                else
+                {
+                    uicard.transform.position = Vector2.MoveTowards(uicard.transform.position, destination, Constants.CARD_MOVEMENT_SPEED * Time.deltaTime);
+                    uicard.transform.rotation = Quaternion.Lerp(uicard.transform.rotation, rotation, Constants.CARD_ROTATION_SPEED * Time.deltaTime);
+                }
             }
 
             return finished;
+        }
+
+        bool isAllCardFinished()
+        {
+            foreach(var c in uicards)
+            {
+                if (Vector2.Distance(c.transform.position, destination) >= Constants.CARD_SNAP_DISTANCE)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -183,6 +231,13 @@ namespace NinetyNine
             working = true;
         }
 
+        public void AddCardAnimation(List<UICard> cards, Vector2 position)
+        {
+            CardAnimation ca = new CardAnimation(cards, position);
+            cardAnimations.Enqueue(ca);
+            working = true;
+        }
+
         private void Update()
         {
             if (currentCardAnimation == null)
@@ -246,6 +301,40 @@ namespace NinetyNine
             playedOrderIdx = 0;
 
             InitializeUIDeck(values);
+        }
+
+        public void ExchangeCards(UIPlayer playerOne, bool faceUpOne, UIPlayer playerTwo, bool faceUpTwo)
+        {
+            List<UICard> oneCards = playerOne.uihand;
+            List<UICard> twoCards = playerTwo.uihand;
+            List<UICard> tmp;
+            
+            // animation
+            AddCardAnimation(oneCards, playerTwo.NextCardPosition());
+            AddCardAnimation(twoCards, playerOne.NextCardPosition());
+
+            // exchange
+            tmp = playerOne.uihand;
+            playerOne.uihand = playerTwo.uihand;
+            playerTwo.uihand = tmp;
+            
+            // change owner
+            // set faceup
+            foreach (var c in playerOne.uihand)
+            {
+                c.OwnerId = playerOne.PlayerId;
+                c.SetFaceUp(faceUpOne);
+            }
+
+            foreach (var c in playerTwo.uihand)
+            {
+                c.OwnerId = playerTwo.PlayerId;
+                c.SetFaceUp(faceUpTwo);
+            }
+
+            // reposition, will reset numberOfCards
+            playerOne.RepositionDisplayingCards(this);
+            playerTwo.RepositionDisplayingCards(this);
         }
 
         public byte nextPlayedOrderIdx ()

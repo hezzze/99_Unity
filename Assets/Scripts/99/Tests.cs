@@ -99,6 +99,12 @@ namespace NinetyNine
             TestSeven2();
             TestSeven3();
 
+            TestKing1();
+            TestKing2();
+            TestKing3();
+
+            TestBlackJoker1();
+
             TestCard();
 
             Debug.Log("All tests passed");
@@ -612,6 +618,84 @@ namespace NinetyNine
 
             Assert("Seven1 - 1", players[0].cards.Count == 3);
             Assert("Seven1 - 2", players[3].alive == false);
+        }
+
+        void TestKing1()
+        // player plays king the point is set to 99
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.King, Suits.Hearts);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(false, null));
+
+            Assert("King1 - 1", testState.GetPoints() == 99);
+            Assert("King1 - 2", testState.GetLastDraw() != null);
+        }
+
+
+        void TestKing2()
+        // player plays king when the point is 99, point stays 99 and player lives 
+        {
+            var testState = getNewTestState(99);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.King, Suits.Spades);
+            players[0].cards.Add(cardToPlay);
+
+            testState.makeMove(players[0].pid, cardToPlay, players[1].pid, new How(false, null));
+
+            Assert("King2 - 1", testState.GetPoints() == 99);
+            Assert("King2 - 2", players[0].alive == true);
+        }
+
+        void TestKing3()
+        // player plays 99 potentially kills another player without card to reduce value
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardToPlay = new Card(Ranks.King, Suits.Clubs);
+            players[0].cards.Add(cardToPlay);
+
+            players[1].cards.Clear();
+            var cardToPlay2 = new Card(Ranks.Two, Suits.Hearts);
+            players[1].cards.Add(cardToPlay2);
+
+            testState.makeMove(players[0].pid, cardToPlay, null, null);
+            testState.makeMove(players[1].pid, cardToPlay2, null, null);
+
+            Assert("King3 - 1", testState.GetPoints() == 99);
+            Assert("King3 - 2", players[1].alive == false);
+        }
+
+
+        void TestBlackJoker1()
+            // player plays black joker, the target is dead, and will be skipped
+        {
+            var testState = getNewTestState(0);
+
+            var players = testState.GetPlayers();
+
+            players[0].cards.Clear();
+            var cardBJ = new Card(Ranks.BlackJoker, Suits.NoSuits);
+            var card1 = new Card(Ranks.Four, Suits.Hearts);
+            players[0].cards.Add(cardBJ);
+            players[0].cards.Add(card1);
+
+            testState.makeMove(players[0].pid, cardBJ, players[1].pid, null);
+
+            Assert("BlackJoker1 - 1", players[1].alive == false);
+            Assert("BlackJoker1 - 2", testState.GetTurn() == players[2]);
+            Assert("BlackJoker1 - 3", players[0].cards.Count == 1);
         }
 
 

@@ -71,8 +71,16 @@ namespace NinetyNine
 
         string SpriteName()
         {
-            string testName = $"card{Suit}{GetRankDescription()}";
-            return testName;
+            if (Suit == Suits.NoSuits)
+            {
+                string testName = Rank == Ranks.BlackJoker ? "BJ" : "RJ";
+                return $"card{testName}";
+            }
+            else
+            {
+                string testName = $"card{Suit}{GetRankDescription()}";
+                return testName;
+            }
         }
 
         public void SetDisplayingOrder(int order)

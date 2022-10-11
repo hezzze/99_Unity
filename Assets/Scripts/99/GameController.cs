@@ -84,27 +84,27 @@ namespace NinetyNine
             //Debug.Log("base awake");
             playerOne.PlayerId = playerIds[0];
             playerOne.PlayerName = "Player";
-            playerOne.Position = PlayerPositions[0].position;
+            //playerOne.Position = PlayerPositions[0].position;
 
             uiPlayers[playerOne.PlayerId] = playerOne;
 
             playerTwo.PlayerId = playerIds[1];
             playerTwo.PlayerName = "Bot1";
-            playerTwo.Position = PlayerPositions[1].position;
+            //playerTwo.Position = PlayerPositions[1].position;
             playerTwo.IsAI = true;
 
             uiPlayers[playerTwo.PlayerId] = playerTwo;
 
             playerThree.PlayerId = playerIds[2];
             playerThree.PlayerName = "Bot2";
-            playerThree.Position = PlayerPositions[2].position;
+            //playerThree.Position = PlayerPositions[2].position;
             playerThree.IsAI = true;
 
             uiPlayers[playerThree.PlayerId] = playerThree;
 
             playerFour.PlayerId = playerIds[3];
             playerFour.PlayerName = "Bot3";
-            playerFour.Position = PlayerPositions[3].position;
+            //playerFour.Position = PlayerPositions[3].position;
             playerFour.IsAI = true;
 
             uiPlayers[playerFour.PlayerId] = playerFour;
@@ -118,10 +118,25 @@ namespace NinetyNine
 
         protected void Start()
         {
+            StartCoroutine(InitAndStartGame());
+            //GameFlow();
+        }
+
+        IEnumerator InitAndStartGame()
+        {
+            yield return new WaitForSeconds(1);
+
+            // positions need to be set in co-routine, after the player have been
+            // anchored responsively 
+            playerOne.Position = PlayerPositions[0].position;
+            playerTwo.Position = PlayerPositions[1].position;
+            playerThree.Position = PlayerPositions[2].position;
+            playerFour.Position = PlayerPositions[3].position;
 
             uiState = UIState.GameStarted;
             GameFlow();
         }
+
 
         //****************** Game Flow *********************//
         public virtual void GameFlow()
@@ -199,8 +214,7 @@ namespace NinetyNine
         {
             var values = GameState.buildDeckValues(Constants.N_CARD_IN_DECK);
 
-            // for Jack testing purpose
-            values.Add(0);
+            values.Add(52);
 
 
             // TODO currently reuse the logic to set up the initial state
@@ -211,7 +225,9 @@ namespace NinetyNine
             cardDealer.DealDisplayingCards(playerThree, Constants.PLAYER_INITIAL_CARDS, false);
             cardDealer.DealDisplayingCards(playerFour, Constants.PLAYER_INITIAL_CARDS, false);
 
-            
+            Debug.Log("Player cards dealt");
+
+
             var unused = new List<Card>();
 
             foreach(var uicard in cardDealer.uideck)
@@ -303,6 +319,7 @@ namespace NinetyNine
                         substractingSelected = Random.Range(0, 2) == 0;
                         break;
                     case Ranks.Ace:
+                    case Ranks.Seven:
                         pids = new List<string>();
                         foreach (var id in playerIds)
                         {
@@ -348,6 +365,7 @@ namespace NinetyNine
                     gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, null, new How(substractingSelected, null));
                     break;
                 case Ranks.Ace:
+                case Ranks.Seven:
                     gameState.makeMove(currentTurnPlayer.PlayerId, cardToPlay, selectedTarget.PlayerId, null);
                     break;
                 default:
@@ -380,9 +398,17 @@ namespace NinetyNine
 
             currentTurnPlayer.PlayCard(cardDealer, selectedCard);
 
-            if (selectedCard.Rank == Ranks.Jack)
+
+            // UI updates for cards
+
+            switch(selectedCard.Rank)
             {
-                uiPlayers[cardToDraw.OwnerId].SendACardToPlayer(currentTurnPlayer, cardDealer, cardToDraw, !currentTurnPlayer.IsAI);
+                case Ranks.Jack:
+                    uiPlayers[cardToDraw.OwnerId].SendACardToPlayer(currentTurnPlayer, cardDealer, cardToDraw, !currentTurnPlayer.IsAI);
+                    break;
+                case Ranks.Seven:
+                    cardDealer.ExchangeCards(currentTurnPlayer, !currentTurnPlayer.IsAI, selectedTarget, !selectedTarget.IsAI);
+                    break;
             }
 
             
@@ -546,6 +572,8 @@ namespace NinetyNine
                 //Debug.Log($"Owner Id {uicard.OwnerId}, pid: {currentTurnPlayer.PlayerId}");
                 if (uicard.OwnerId == currentTurnPlayer.PlayerId)
                 {
+
+                   // 1. reset
                     if (selectedCard != null)
                     {
                         selectedCard.OnSelected(false);
@@ -564,11 +592,13 @@ namespace NinetyNine
                         }
                     }
 
-
+                    // 2. set selected card 
                     selectedCard = uicard;
                     selectedCard.OnSelected(true);
                     SetMessage($"{currentTurnPlayer.PlayerName}: Play {selectedCard} ?");
 
+
+                    // 3. show extra UI options
                     switch(uicard.Rank)
                     {
                         case Ranks.Jack:
@@ -580,6 +610,7 @@ namespace NinetyNine
                             panel.SetActive(true);
                             break;
                         case Ranks.Ace:
+                        case Ranks.Seven:
                             isSelectingTarget = true;
                             targetSelector.RenderButtons(GetAliveUIPlayers(), OnTargetSelected);
                             targetSelector.gameObject.SetActive(true);
@@ -646,8 +677,17 @@ namespace NinetyNine
         {
             selectedTarget = uiPlayers[PlayerId];
             targetSelector.gameObject.SetActive(false);
-            SetMessage($"Play {selectedCard} to choose {PlayerName} to play " +
+
+            switch (selectedCard.Rank)
+            {
+                case Ranks.Ace:
+                    SetMessage($"Play {selectedCard} to choose {PlayerName} to play " +
                     "next?");
+                    break;
+                case Ranks.Seven:
+                    SetMessage($"Play {selectedCard} to exchange cards with {PlayerName}?");
+                    break;
+            }
         } 
 
         //****************** Animator Event *********************//

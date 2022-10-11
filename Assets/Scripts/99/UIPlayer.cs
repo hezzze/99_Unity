@@ -219,7 +219,6 @@ namespace NinetyNine
             panel.SetActive(true);
         }
 
-       
 
         //public bool Equals(UIPlayer other)
         //{

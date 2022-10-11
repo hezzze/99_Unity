@@ -50,6 +50,7 @@ SpriteAtlas:
   - {fileID: 21300000, guid: 2c2776a182f00411dadbdccba1c0298f, type: 3}
   - {fileID: 21300000, guid: 92a075e191e0342c2b59541ffcfde2a4, type: 3}
   - {fileID: 21300000, guid: 6dd2c732cb44241e99e8149623e91c45, type: 3}
+  - {fileID: 21300000, guid: 323f0a32283ec45c29ba1ae34abc8e74, type: 3}
   - {fileID: 21300000, guid: c86c465206f994a15b7eab29280d1b5b, type: 3}
   - {fileID: 21300000, guid: 9d4827536c9814698952daa255d8f4b8, type: 3}
   - {fileID: 21300000, guid: b882db8313c7744d2919a9e10274763e, type: 3}
@@ -119,6 +120,7 @@ SpriteAtlas:
   - cardDiamonds9
   - cardBack_green4
   - cardClubs5
+  - cardBJ
   - cardClubs8
   - cardHearts2
   - cardClubs3
@@ -164,7 +166,7 @@ SpriteAtlas:
   - cardDiamonds5
   - cardDiamonds7
   - cardSpadesJ
-  - cardJoker
+  - cardRJ
   - cardBack_red1
   - cardBack_green3
   - cardHearts10
