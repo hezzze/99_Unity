@@ -75,7 +75,7 @@ namespace NinetyNine
         [SerializeField]
         protected UIState uiState = UIState.Idle;
 
-        
+
 
         protected void Awake()
         {
@@ -228,7 +228,7 @@ namespace NinetyNine
 
             var unused = new List<Card>();
 
-            foreach(var uicard in cardDealer.uideck)
+            foreach (var uicard in cardDealer.uideck)
             {
                 unused.Add(new Card(uicard.Rank, uicard.Suit));
             }
@@ -240,7 +240,7 @@ namespace NinetyNine
                 var player = new Player(playerId);
 
                 var uihand = uiPlayers[playerId].uihand;
-                
+
                 foreach (var uicard in uihand)
                 {
                     player.cards.Add(new Card(uicard.Rank, uicard.Suit));
@@ -250,7 +250,7 @@ namespace NinetyNine
             }
 
             gameState = new GameState(unused, players, 0);
-        
+
 
             uiState = UIState.TurnStarted;
         }
@@ -297,16 +297,14 @@ namespace NinetyNine
                 selectedCard.OnSelected(true);
                 List<string> pids;
 
-
-
                 switch (selectedCard.Rank)
                 {
                     case Ranks.Jack:
                         // pick a random card to draw
                         pids = new List<string>();
-                        foreach (var id in playerIds)
+                        foreach (var p in gameState.GetPlayers())
                         {
-                            if (id != currentTurnPlayer.PlayerId) pids.Add(id);
+                            if (p.pid != currentTurnPlayer.PlayerId && p.alive) pids.Add(p.pid);
                         }
                         var randPid = pids[Random.Range(0, pids.Count)];
                         var randUiPlayer = uiPlayers[randPid];
@@ -319,9 +317,9 @@ namespace NinetyNine
                     case Ranks.Ace:
                     case Ranks.Seven:
                         pids = new List<string>();
-                        foreach (var id in playerIds)
+                        foreach (var p in gameState.GetPlayers())
                         {
-                            if (id != currentTurnPlayer.PlayerId) pids.Add(id);
+                            if (p.pid != currentTurnPlayer.PlayerId && p.alive) pids.Add(p.pid);
                         }
                         selectedTarget = uiPlayers[pids[Random.Range(0, pids.Count)]];
                         break;
@@ -351,7 +349,7 @@ namespace NinetyNine
             // UI to update gameState by callong makeMove
 
 
-            switch(selectedCard.Rank)
+            switch (selectedCard.Rank)
             {
                 case Ranks.Jack:
                     var targetUiPlayer = uiPlayers[cardToDraw.OwnerId];
@@ -399,7 +397,7 @@ namespace NinetyNine
 
             // UI updates for cards
 
-            switch(selectedCard.Rank)
+            switch (selectedCard.Rank)
             {
                 case Ranks.Jack:
                     uiPlayers[cardToDraw.OwnerId].SendACardToPlayer(currentTurnPlayer, cardDealer, cardToDraw, !currentTurnPlayer.IsAI);
@@ -409,7 +407,7 @@ namespace NinetyNine
                     break;
             }
 
-            
+
             // reset
 
             selectedCard = null;
@@ -571,7 +569,7 @@ namespace NinetyNine
                 if (uicard.OwnerId == currentTurnPlayer.PlayerId)
                 {
 
-                   // 1. reset
+                    // 1. reset
                     if (selectedCard != null)
                     {
                         selectedCard.OnSelected(false);
@@ -597,7 +595,7 @@ namespace NinetyNine
 
 
                     // 3. show extra UI options
-                    switch(uicard.Rank)
+                    switch (uicard.Rank)
                     {
                         case Ranks.Jack:
                             isDrawingCard = true;
@@ -616,7 +614,8 @@ namespace NinetyNine
                     }
 
 
-                } else if (isDrawingCard)
+                }
+                else if (isDrawingCard)
                 {
                     if (cardToDraw != null)
                     {
@@ -639,10 +638,12 @@ namespace NinetyNine
                     if (selectedCard.Rank == Ranks.Jack && cardToDraw == null)
                     {
                         SetMessage($"Please select a card to draw");
-                    } else if (selectedCard.Rank == Ranks.Ace && selectedTarget == null)
+                    }
+                    else if (selectedCard.Rank == Ranks.Ace && selectedTarget == null)
                     {
                         SetMessage($"Please select a target...");
-                    } else
+                    }
+                    else
                     {
                         uiState = UIState.TurnConfirmedSelectedNumber;
                         GameFlow();
@@ -686,7 +687,7 @@ namespace NinetyNine
                     SetMessage($"Play {selectedCard} to exchange cards with {PlayerName}?");
                     break;
             }
-        } 
+        }
 
         //****************** Animator Event *********************//
         public virtual void AllAnimationsFinished()
@@ -726,11 +727,12 @@ namespace NinetyNine
                 if (gameState.GetGameOver())
                 {
                     uiState = UIState.GameFinished;
-                } else
+                }
+                else
                 {
                     uiState = UIState.TurnStarted;
                 }
-                
+
             }
 
             GameFlow();

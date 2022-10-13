@@ -7,7 +7,6 @@ SpriteAtlas:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Cards
-  serializedVersion: 2
   m_EditorData:
     serializedVersion: 2
     textureSettings:
@@ -29,6 +28,7 @@ SpriteAtlas:
       allowAlphaSplitting: 0
       enableRotation: 1
       enableTightPacking: 1
+      enableAlphaDilation: 0
     secondaryTextureSettings: {}
     variantMultiplier: 1
     packables:
@@ -180,4 +180,3 @@ SpriteAtlas:
   m_RenderDataMap: {}
   m_Tag: Cards
   m_IsVariant: 0
-  m_IsPlaceholder: 0

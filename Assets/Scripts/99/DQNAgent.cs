@@ -20,7 +20,7 @@ namespace NinetyNine
         static string[] SIGN = new string[] { "+", "-" };
 
 
-        GameState st;
+        GameState st = null;
         Dictionary<string, byte> _actionSpace;
         string[] _actionList;
 
@@ -28,7 +28,7 @@ namespace NinetyNine
         Dictionary<string, Ranks> _rankMap;
 
         // Start is called before the first frame update
-        protected void Start()
+        protected void Awake()
         {
             _actionSpace = new Dictionary<string, byte>();
             byte index = 0;
@@ -130,6 +130,12 @@ namespace NinetyNine
 
         private void FixedUpdate()
         {
+
+            if (st == null) {
+                Debug.Log("### State not initialized");
+                return;
+            }
+
             // check if it's AI's turn or game over, if not keep playing random moves
             while (st.GetTurnId() != "P1" && !st.GetGameOver())
             {
@@ -167,7 +173,7 @@ namespace NinetyNine
                     // pick a random player as a target to draw
                     foreach (var p in st.GetPlayers())
                     {
-                        if (p.pid != currentTurnPlayer.pid) targetList.Add(p);
+                        if (p.pid != currentTurnPlayer.pid && p.alive) targetList.Add(p);
                     }
                     target = targetList[Random.Range(0, targetList.Count)];
                     drawIdx = Random.Range(0, target.cards.Count);
@@ -183,7 +189,7 @@ namespace NinetyNine
                     targetList = new List<Player>();
                     foreach (var p in st.GetPlayers())
                     {
-                        if (p.pid != currentTurnPlayer.pid) targetList.Add(p);
+                        if (p.pid != currentTurnPlayer.pid && p.alive) targetList.Add(p);
                     }
                     target = targetList[Random.Range(0, targetList.Count)];
                     st.makeMove(currentTurnPlayer.pid, randCard, target.pid, null);
@@ -227,8 +233,8 @@ namespace NinetyNine
             int actionIndex = actionBuffers.DiscreteActions[0];
 
             var action = _actionList[actionIndex];
-            var rank = _rankMap[$"{action[0]}"];
-            var suit = _suitMap[$"{action[1]}"];
+            var suit = _suitMap[$"{action[0]}"];
+            var rank = _rankMap[$"{action[1]}"];
             var cardToPlay = new Card(rank, suit);
 
             var players = st.GetPlayers();
