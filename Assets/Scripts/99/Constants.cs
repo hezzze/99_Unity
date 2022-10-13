@@ -23,15 +23,21 @@ namespace NinetyNine
 
         public const string PLUS_BUTTON_NAME = "plus";
         public const string MINUS_BUTTON_NAME = "minus";
+        public const byte NUM_OF_PLAYERS = 4;
     }
 
     public enum Suits
     {
+        [Description("No Suits")]
         NoSuits = -1,
+        [Description("S")]
         Spades = 0,
-        Clubs = 1,
+        [Description("H")]
+        Hearts = 1,
+        [Description("D")]
         Diamonds = 2,
-        Hearts = 3,
+        [Description("C")]
+        Clubs = 3,
     }
 
     public enum Ranks
@@ -39,34 +45,34 @@ namespace NinetyNine
         [Description("No Ranks")]
         NoRanks = -1,
         [Description("A")]
-        Ace = 1,
+        Ace = 0,
         [Description("2")]
-        Two = 2,
+        Two = 1,
         [Description("3")]
-        Three = 3,
+        Three = 2,
         [Description("4")]
-        Four = 4,
+        Four = 3,
         [Description("5")]
-        Five = 5,
+        Five = 4,
         [Description("6")]
-        Six = 6,
+        Six = 5,
         [Description("7")]
-        Seven = 7,
+        Seven = 6,
         [Description("8")]
-        Eight = 8,
+        Eight = 7,
         [Description("9")]
-        Nine = 9,
-        [Description("10")]
-        Ten = 10,
+        Nine = 8,
+        [Description("T")]
+        Ten = 9,
         [Description("J")]
-        Jack = 11,
+        Jack = 10,
         [Description("Q")]
-        Queen = 12,
+        Queen = 11,
         [Description("K")]
-        King = 13,
+        King = 12,
         [Description("Black Joker")]
-        BlackJoker = 14,
+        BlackJoker = 13,
         [Description("Red Joker")]
-        RedJoker = 15
+        RedJoker = 14
     }
 }

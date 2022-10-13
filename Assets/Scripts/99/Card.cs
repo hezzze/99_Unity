@@ -17,7 +17,7 @@ namespace NinetyNine
             {
                 if (Rank == Ranks.BlackJoker) return 52;
                 if (Rank == Ranks.RedJoker) return 53;
-                return (byte)(((int)Rank - 1) * 4 + (int)Suit);
+                return (byte)((int)Rank * 4 + (int)Suit);
             }
         }
 
@@ -35,7 +35,7 @@ namespace NinetyNine
                 // 4-7 are 2's
                 // ...
                 // 48-51 are kings's
-                return (Ranks)(value / 4 + 1);
+                return (Ranks)(value / 4);
             }
         }
 
@@ -77,6 +77,25 @@ namespace NinetyNine
         public override string ToString()
         {
             return $"{Rank} of {Suit}";
+        }
+
+        public string GetRankDescription()
+        {
+            FieldInfo fieldInfo = Rank.GetType().GetField(Rank.ToString());
+            DescriptionAttribute[] attributes = fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
+            return attributes[0].Description;
+        }
+
+        public string GetSuitDescription()
+        {
+            FieldInfo fieldInfo = Suit.GetType().GetField(Suit.ToString());
+            DescriptionAttribute[] attributes = fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
+            return attributes[0].Description;
+        }
+
+        public string GetCode()
+        {
+            return $"{GetSuitDescription()}{GetRankDescription()}";
         }
     }
 }

@@ -305,7 +305,7 @@ namespace NinetyNine
         {
             //Debug.Log($"PlayNormal - card rank: {card.Rank}");
             
-            points += card.Rank.GetHashCode();
+            points += (card.Rank.GetHashCode() + 1);
         }
 
         void PlayChooseNext(Player target)

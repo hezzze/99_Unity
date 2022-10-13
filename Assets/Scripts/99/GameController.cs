@@ -214,8 +214,6 @@ namespace NinetyNine
         {
             var values = GameState.buildDeckValues(Constants.N_CARD_IN_DECK);
 
-            values.Add(52);
-
 
             // TODO currently reuse the logic to set up the initial state
             // need to refactor this code to better honor the MVC practice

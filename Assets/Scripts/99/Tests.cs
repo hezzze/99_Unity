@@ -151,10 +151,10 @@ namespace NinetyNine
             players[0].cards.Clear();
             players[0].cards.Add(new Card(Ranks.Three, Suits.Spades));
 
-            testState.makeMove(players[0].pid, new Card(8), players[1].pid, null);
+            testState.makeMove(players[0].pid, new Card(Ranks.Three, Suits.Spades), players[1].pid, null);
 
-            Assert(3, testState.GetPoints() == 3);
-            Assert(3, testState.GetTurn() == players[1]);
+            Assert("3.1", testState.GetPoints() == 3);
+            Assert("3.2", testState.GetTurn() == players[1]);
         }
 
         void Test4()
@@ -703,12 +703,18 @@ namespace NinetyNine
 
         void TestCard()
         {
-            Assert("Card", new Card(Ranks.Four, Suits.Diamonds).value == 14);
-            Assert("Card", new Card(Ranks.Seven, Suits.Hearts).value == 27);
-            Assert("Card", new Card(Ranks.Jack, Suits.Spades).value == 40);
-            Assert("Card", new Card(Ranks.RedJoker, Suits.NoSuits).value == 53);
-            Assert("Card", new Card(Ranks.BlackJoker, Suits.NoSuits).value == 52);
-            Assert("Card", new Card(Ranks.Nine, Suits.Clubs).value == 33);
+            Assert("Card 1", new Card(Ranks.Four, Suits.Diamonds).value == 14);
+            Assert("Card 2", new Card(Ranks.Seven, Suits.Hearts).value == 25);
+            Assert("Card 3", new Card(Ranks.Jack, Suits.Spades).value == 40);
+            Assert("Card 4", new Card(Ranks.RedJoker, Suits.NoSuits).value == 53);
+            Assert("Card 5", new Card(Ranks.BlackJoker, Suits.NoSuits).value == 52);
+            Assert("Card 6", new Card(Ranks.Nine, Suits.Clubs).value == 35);
+            Assert("Card 7", new Card(Ranks.Ten, Suits.Diamonds).GetCode() == "DT");
+            Assert("Card 8", new Card(Ranks.Three, Suits.Hearts).GetCode() == "H3");
+            Assert("Card 9", new Card(Ranks.Seven, Suits.Clubs).GetCode() == "C7");
+            Assert("Card 10", new Card(Ranks.Two, Suits.Spades).GetCode() == "S2");
+            Assert("Card 11", new Card(Ranks.Ace, Suits.Hearts).GetCode() == "HA");
+
         }
 
 

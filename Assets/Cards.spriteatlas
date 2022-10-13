@@ -131,7 +131,7 @@ SpriteAtlas:
   - cardBack_blue5
   - cardClubs4
   - cardHearts4
-  - cardDiamonds10
+  - cardDiamondsT
   - cardHearts6
   - cardDiamonds3
   - cardBack_green1
@@ -157,10 +157,10 @@ SpriteAtlas:
   - cardBack_green5
   - cardBack_red4
   - cardHeartsA
-  - cardSpades10
+  - cardSpadesT
   - cardBack_blue2
   - cardSpadesA
-  - cardClubs10
+  - cardClubsT
   - cardSpades8
   - cardSpades6
   - cardDiamonds5
@@ -169,7 +169,7 @@ SpriteAtlas:
   - cardRJ
   - cardBack_red1
   - cardBack_green3
-  - cardHearts10
+  - cardHeartsT
   - cardClubs7
   - cardBack_blue3
   - cardDiamonds8
