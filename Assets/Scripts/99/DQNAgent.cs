@@ -327,7 +327,7 @@ namespace NinetyNine
 
             for (var i = 0; i < _actionList.Count(); i++)
             {
-                // only 1 branch 
+                // only 1 branch, which is set to 96 discrete actions
                 actionMask.SetActionEnabled(0, i, legalAction.Contains(_actionList[i]));
             }
             

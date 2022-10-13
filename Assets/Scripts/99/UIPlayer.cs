@@ -17,6 +17,12 @@ namespace NinetyNine
         public bool IsAI;
         public Vector2 Position;
         public Vector2 BookPosition;
+        public AIPlayer agent;
+
+
+
+        public bool isCardGoUp = true;
+        
 
         int numOfCardsInHand;
         //int numberOfBooks;
@@ -179,7 +185,7 @@ namespace NinetyNine
 
         public void PlayCard(CardDealer cardDealer, UICard uicard)
         {
-            Vector2 pos = (Vector2)uicard.transform.position + Vector2.up * Constants.PLAY_CARD_OFFSET;
+            Vector2 pos = (Vector2)uicard.transform.position + (isCardGoUp ? Vector2.up : Vector2.down) * Constants.PLAY_CARD_OFFSET;
             cardDealer.AddCardAnimation(uicard, pos);
             uicard.SetFaceUp(true);
             numOfCardsInHand--;

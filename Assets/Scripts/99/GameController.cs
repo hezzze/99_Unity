@@ -99,6 +99,7 @@ namespace NinetyNine
             playerThree.PlayerName = "Bot2";
             //playerThree.Position = PlayerPositions[2].position;
             playerThree.IsAI = true;
+            playerThree.isCardGoUp = false;
 
             uiPlayers[playerThree.PlayerId] = playerThree;
 
@@ -291,38 +292,52 @@ namespace NinetyNine
 
             if (currentTurnPlayer.IsAI)
             {
-                // AI playing
-                int idx = Random.Range(0, currentTurnPlayer.uihand.Count);
-                selectedCard = currentTurnPlayer.uihand[idx];
-                selectedCard.OnSelected(true);
-                List<string> pids;
-
-                switch (selectedCard.Rank)
+                // if UIPlayer.agent is not null, use trained AI policy
+                if (currentTurnPlayer.agent != null)
                 {
-                    case Ranks.Jack:
-                        // pick a random card to draw
-                        pids = new List<string>();
-                        foreach (var p in gameState.GetPlayers())
-                        {
-                            if (p.pid != currentTurnPlayer.PlayerId && p.alive) pids.Add(p.pid);
-                        }
-                        var randPid = pids[Random.Range(0, pids.Count)];
-                        var randUiPlayer = uiPlayers[randPid];
-                        cardToDraw = randUiPlayer.uihand[Random.Range(0, randUiPlayer.uihand.Count)];
-                        break;
-                    case Ranks.Ten:
-                    case Ranks.Queen:
-                        substractingSelected = Random.Range(0, 2) == 0;
-                        break;
-                    case Ranks.Ace:
-                    case Ranks.Seven:
-                        pids = new List<string>();
-                        foreach (var p in gameState.GetPlayers())
-                        {
-                            if (p.pid != currentTurnPlayer.PlayerId && p.alive) pids.Add(p.pid);
-                        }
-                        selectedTarget = uiPlayers[pids[Random.Range(0, pids.Count)]];
-                        break;
+                    Debug.Log("### Trained AI NN playing!");
+
+                    currentTurnPlayer.agent.GetInference(this);
+
+                    // the agent will call GameController.OnAIAction
+                    // which in turn calls playCard to continue the logic
+                } else
+                {
+                    // use random policy
+                    int idx = Random.Range(0, currentTurnPlayer.uihand.Count);
+                    selectedCard = currentTurnPlayer.uihand[idx];
+                    selectedCard.OnSelected(true);
+                    List<string> pids;
+
+                    switch (selectedCard.Rank)
+                    {
+                        case Ranks.Jack:
+                            // pick a random card to draw
+                            pids = new List<string>();
+                            foreach (var p in gameState.GetPlayers())
+                            {
+                                if (p.pid != currentTurnPlayer.PlayerId && p.alive) pids.Add(p.pid);
+                            }
+                            var randPid = pids[Random.Range(0, pids.Count)];
+                            var randUiPlayer = uiPlayers[randPid];
+                            cardToDraw = randUiPlayer.uihand[Random.Range(0, randUiPlayer.uihand.Count)];
+                            break;
+                        case Ranks.Ten:
+                        case Ranks.Queen:
+                            substractingSelected = Random.Range(0, 2) == 0;
+                            break;
+                        case Ranks.Ace:
+                        case Ranks.Seven:
+                            pids = new List<string>();
+                            foreach (var p in gameState.GetPlayers())
+                            {
+                                if (p.pid != currentTurnPlayer.PlayerId && p.alive) pids.Add(p.pid);
+                            }
+                            selectedTarget = uiPlayers[pids[Random.Range(0, pids.Count)]];
+                            break;
+                    }
+
+                    playCard();
                 }
 
                 //if (selectedCard.Rank == Ranks.Jack)
@@ -337,9 +352,49 @@ namespace NinetyNine
                 //    var randUiPlayer = uiPlayers[randPid];
                 //    cardToDraw = randUiPlayer.uihand[Random.Range(0, randUiPlayer.uihand.Count)];
                 //}
+            } else
+            {
+                // human move
+                playCard();
+            }
+        }
+
+        
+        public void OnAIAction(Suits suit, Ranks rank, int? targetIdx, bool? isSub)
+        {
+            // find the uicard with AI inferred suit and rank
+            foreach (var uicard in currentTurnPlayer.uihand)
+            {
+                if (uicard.Rank == rank && uicard.Suit == suit)
+                {
+                    selectedCard = uicard;
+                    break;
+                }
             }
 
+            selectedCard.OnSelected(true);
 
+            switch (selectedCard.Rank)
+            {
+                case Ranks.Jack:
+                    var uIPlayer = uiPlayers[playerIds[(int)targetIdx]];
+                    cardToDraw = uIPlayer.uihand[Random.Range(0, uIPlayer.uihand.Count)];
+                    break;
+                case Ranks.Ten:
+                case Ranks.Queen:
+                    substractingSelected = (bool)isSub;
+                    break;
+                case Ranks.Ace:
+                case Ranks.Seven:
+                    selectedTarget = uiPlayers[playerIds[(int)targetIdx]];
+                    break;
+            }
+
+            playCard();
+        }
+
+        void playCard()
+        {
             SetMessage($"{currentTurnPlayer.PlayerName} played {selectedCard} ...");
 
             Debug.Log($"{currentTurnPlayer.PlayerName} played {selectedCard} ...");
@@ -420,9 +475,8 @@ namespace NinetyNine
 
             // TODO refactor
             // After animation ended, a new trun will be started automatically
-
-
         }
+
 
         //public void OnTurnWaitingForOpponentConfirmation()
         //{
@@ -736,6 +790,11 @@ namespace NinetyNine
             }
 
             GameFlow();
+        }
+
+        public GameState GetGameState()
+        {
+            return gameState;
         }
     }
 }
